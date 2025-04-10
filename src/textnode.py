@@ -38,6 +38,26 @@ def text_node_to_html_node(text_node):
         return LeafNode(tag="img", value="", props={"src": text_node.url, "alt": text_node.text})
     else:
         raise ValueError("Unsupported text type or missing URL")
+    
+def text_to_textnodes(text):
+    from split import split_nodes_images, split_nodes_link, split_nodes_delimiter
+    nodes = [TextNode(text, TextType.NORMAL_TEXT)]
+    nodes = split_nodes_images(nodes)
+    nodes = split_nodes_link(nodes)
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD_TEXT)
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC_TEXT)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE_TEXT)
+    return nodes
+
+def markdown_to_blocks(markdown):
+    from split import split_nodes_images, split_nodes_link, split_nodes_delimiter
+    nodes = [TextNode(markdown, TextType.NORMAL_TEXT)]
+    nodes = split_nodes_images(nodes)
+    nodes = split_nodes_link(nodes)
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD_TEXT)
+    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC_TEXT)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE_TEXT)
+    return nodes
 
 
 

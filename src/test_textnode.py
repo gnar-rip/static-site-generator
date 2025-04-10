@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, TextType, text_node_to_html_node
+from textnode import TextNode, TextType, text_node_to_html_node, text_to_textnodes, markdown_to_blocks
 
 
 
@@ -35,7 +35,34 @@ class TestTextNode(unittest.TestCase):
         self.assertEqual(html_node.tag, None)
         self.assertEqual(html_node.value, "This is a text node")
 
+    def test_to_text_node(self):
+        text = "This is **bold** text"
+        nodes = text_to_textnodes(text)
+        self.assertEqual(3, len(nodes))
+        self.assertEqual("This is ", nodes[0].text)
+        self.assertEqual(TextType.NORMAL_TEXT, nodes[0].text_type)
+        self.assertEqual("bold", nodes[1].text)
+        self.assertEqual(TextType.BOLD_TEXT, nodes[1].text_type)
 
+def test_markdown_to_blocks(self):
+    md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+    blocks = markdown_to_blocks(md)
+    self.assertEqual(
+        blocks,
+        [
+            "This is **bolded** paragraph",
+            "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+            "- This is a list\n- with items",
+        ],
+    )
 
 
 if __name__ == "__main__":
