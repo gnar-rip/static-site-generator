@@ -24,7 +24,6 @@ class LeafNode(HTMLNode):
         if self.tag is None:
             return self.value
     
-        # Only include props if they exist
         props_html = f" {self.props_to_html()}" if self.props else ""
         return f"<{self.tag}{props_html}>{self.value}</{self.tag}>"
     
@@ -38,7 +37,6 @@ class ParentNode(HTMLNode):
         if self.children is None:
             raise ValueError("Parent node must have children")
         
-        # Only include props if they exist
         props_html = f" {self.props_to_html()}" if self.props else ""
         children_html = "".join(child.to_html() for child in self.children)
         return f"<{self.tag}{props_html}>{children_html}</{self.tag}>"
