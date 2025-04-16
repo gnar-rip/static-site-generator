@@ -1,5 +1,5 @@
 from enum import Enum
-from htmlnode import HTMLNode
+from htmlnode import HTMLNode, ParentNode, LeafNode
 from textnode import TextNode, TextType, text_node_to_html_node, text_to_textnodes
 
 class BlockType(Enum):
@@ -12,19 +12,17 @@ class BlockType(Enum):
 
 def block_to_block_type(markdown):
     lines = markdown.split("\n")
-    if markdown.startswith(("#", "##", "###", "####", "#####", "######") and markdown[markdown.find('#') + 1] == " "):
+    if markdown.startswith(("#", "##", "###", "####", "#####", "######")) and markdown[markdown.find('#') + 1] == " ":
         return BlockType.heading
     elif markdown.startswith("```") and markdown.endswith("```"):
         return BlockType.code
-    elif all(line.startswith(">") for line in lines):
+    elif all(line.startswith(">") for line in lines if line.strip()):
         return BlockType.quote
-    elif all(line.startswith("- ") for line in lines):
+    elif all(line.startswith("- ") for line in lines if line.strip()):
         return BlockType.unordered_list
-    elif markdown[0].isdigit() and markdown[1] == ".":
-        for i, line in enumerate(lines, 1):
-            expected_prefix = f"{i}. "
-            if not line.startswith(expected_prefix):
-                break   
+    # Here's the ordered list check that needs fixing
+    elif all(line.strip() and line.strip()[0].isdigit() and line.strip()[1] == "." for line in lines if line.strip()):
+        return BlockType.ordered_list
     else:
         return BlockType.paragraph
     
@@ -59,7 +57,7 @@ def markdown_to_html_node(markdown):
     blocks = split_markdown_into_blocks(markdown)
     
     # Create a parent div to hold all blocks
-    parent_node = HTMLNode("div", None, None, [])
+    parent_node = ParentNode("div", [])
     
     # Process each block
     for block in blocks:
@@ -69,7 +67,7 @@ def markdown_to_html_node(markdown):
         if block_type == BlockType.paragraph:
             # Strip leading/trailing whitespace and create paragraph node
             text = block.strip()
-            paragraph_node = HTMLNode("p", None, None, text_to_children(text))
+            paragraph_node = ParentNode("p", text_to_children(text))
             parent_node.children.append(paragraph_node)
             
         elif block_type == BlockType.heading:
@@ -83,7 +81,7 @@ def markdown_to_html_node(markdown):
                     
             # Strip the # and whitespace, then create heading node
             text = block[level:].strip()
-            heading_node = HTMLNode(f"h{level}", None, None, text_to_children(text))
+            heading_node = ParentNode(f"h{level}", text_to_children(text))
             parent_node.children.append(heading_node)
         elif block_type == BlockType.code:
             # For code blocks, we don't process inline markdown
@@ -96,8 +94,8 @@ def markdown_to_html_node(markdown):
             code_html_node = text_node_to_html_node(code_text_node)
             
             # Create code and pre nodes
-            code_node = HTMLNode("code", None, None, [code_html_node])
-            pre_node = HTMLNode("pre", None, None, [code_node])
+            code_node = ParentNode("code", [code_html_node])
+            pre_node = ParentNode("pre", [code_node])
             parent_node.children.append(pre_node)
             
         elif block_type == BlockType.quote:
@@ -115,11 +113,11 @@ def markdown_to_html_node(markdown):
                     quote_lines.append(line)
             
             quote_text = '\n'.join(quote_lines).strip()
-            quote_node = HTMLNode("blockquote", None, None, text_to_children(quote_text))
+            quote_node = ParentNode("blockquote", text_to_children(quote_text))
             parent_node.children.append(quote_node)
             
         elif block_type == BlockType.unordered_list:
-            list_node = HTMLNode("ul", None, None, [])
+            list_node = ParentNode("ul", [])
             lines = block.split('\n')
             
             for line in lines:
@@ -127,27 +125,27 @@ def markdown_to_html_node(markdown):
                 if line.strip().startswith("- ") or line.strip().startswith("* "):
                     # Extract the text after the marker
                     item_text = line.strip()[2:].strip()
-                    item_node = HTMLNode("li", None, None, text_to_children(item_text))
+                    item_node = ParentNode("li", text_to_children(item_text))
                     list_node.children.append(item_node)
             
             parent_node.children.append(list_node)
             
         elif block_type == BlockType.ordered_list:
-            list_node = HTMLNode("ol", None, None, [])
+            list_node = ParentNode("ol", [])
             lines = block.split('\n')
             
             for line in lines:
                 # Check for pattern like "1. " and create list item
-                stripped = line.strip()
-                if len(stripped) >= 3 and stripped[0].isdigit() and stripped[1] == '.' and stripped[2] == ' ':
-                    # Find where the actual content starts
-                    start_idx = stripped.find(' ') + 1
-                    item_text = stripped[start_idx:].strip()
-                    item_node = HTMLNode("li", None, None, text_to_children(item_text))
+                # This regex would match patterns like "1. ", "2. ", etc.
+                import re
+                match = re.match(r'^\s*\d+\.\s+(.+)$', line)
+                if match:
+                    item_text = match.group(1).strip()
+                    item_node = ParentNode("li", text_to_children(item_text))
                     list_node.children.append(item_node)
             
             parent_node.children.append(list_node)
-    
+            
     return parent_node
 
 def text_to_children(text):
