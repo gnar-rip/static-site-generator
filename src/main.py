@@ -42,7 +42,7 @@ def generate_page(from_path, template_path, dest_path, basepath):
     title = extract_title(markdown_content)
 
     full_html = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
-    full_html = full_html.replace('href="/', f'href="{basepath}static/')
+    full_html = full_html.replace('href="/index.css', f'href="{basepath}static/index.css')
     full_html = full_html.replace('src="/images/', f'src="{basepath}static/images/')
     full_html = full_html.replace('href="/blog/', f'href="{basepath}blog/')
     full_html = full_html.replace('href="/contact', f'href="{basepath}contact')
