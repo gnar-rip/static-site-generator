@@ -46,6 +46,7 @@ def generate_page(from_path, template_path, dest_path, basepath):
     full_html = full_html.replace('src="/images/', f'src="{basepath}static/images/')
     full_html = full_html.replace('href="/blog/', f'href="{basepath}blog/')
     full_html = full_html.replace('href="/contact', f'href="{basepath}contact')
+    full_html = full_html.replace('href="/"', f'href="{basepath}"')
 
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     with open(dest_path, 'w') as f:
