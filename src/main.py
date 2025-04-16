@@ -43,7 +43,7 @@ def generate_page(from_path, template_path, dest_path, basepath):
 
     full_html = template_content.replace("{{ Title }}", title).replace("{{ Content }}", html_content)
     full_html = full_html.replace('href="/', f'href="{basepath}static/')
-    full_html = full_html.replace('src="/', f'src="{basepath}static/images/')
+    full_html = full_html.replace('src="/images/', f'src="{basepath}static/images/')
 
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     with open(dest_path, 'w') as f:
